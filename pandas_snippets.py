@@ -1,16 +1,13 @@
 import logging
-from typing import List, Union
-
 import numpy as np
+from typing import List, Union
 
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 
-# This is (partly) a copy from:
-# https://github.com/Amsterdam-Data-Collective/adc-pipeline/tree/2b590e6cca41c36d7b667c707670b6c6d78ed9a2
-def memory_size(df) -> float:
+def memory_size(df: pd.DataFrame) -> float:
     """
     Returns:
         Memory size of the full DataFrame in KB
@@ -18,19 +15,19 @@ def memory_size(df) -> float:
     return round(df.memory_usage().sum() / 1000, 2)
 
 
-def downcast(df, signed_cols: List[str] = None) -> pd.DataFrame:
+def downcast(df: pd.DataFrame, signed_columns: List[str] = None) -> pd.DataFrame:
     """
     Automatically check for signed/unsigned columns and downcast.
     However, if a column can be signed while all the data in that column is unsigned, you don't want to downcast to
     an unsigned column. You can explicitly pass these columns.
 
     :arg df: Data as Pandas DataFrame
-    :arg signed_cols: List of signed columns (signed = positive and negative values, unsigned = only positive values).
+    :arg signed_columns: List of signed columns (signed = positive and negative values, unsigned = only positive values).
     """
     logger.info(f'Size before downcasting: {df.memory_size} KB')
     for column in df.columns:
         if df[column].dtype in [np.int8, np.int16, np.int32, np.int64]:
-            if (df[column] < 0).any() or (signed_cols is not None and df[column].name in signed_cols):
+            if (df[column] < 0).any() or (signed_columns is not None and df[column].name in signed_columns):
                 df[column] = pd.to_numeric(df[column], downcast='signed')
             else:
                 df[column] = pd.to_numeric(df[column], downcast='unsigned')
@@ -41,7 +38,23 @@ def downcast(df, signed_cols: List[str] = None) -> pd.DataFrame:
     return df
 
 
-def reorder_columns(df, columns: Union[str, List[str]], index: int) -> pd.DataFrame:
+def sort_by_list(df: pd.DataFrame, sort_list: list, column: str) -> pd.DataFrame:
+    """
+    Sort DataFrame by specific values for a specific column
+
+    :arg df: Data as Pandas DataFrame
+    :arg sort_list: List to sort on
+    :arg column: Column to sort on
+    :return:
+    """
+    df[column] = df[column].astype("category")
+    df[column] = df[column].cat.set_categories(sort_list)
+    df = df.sort_values(column)
+
+    return df
+
+
+def reorder_columns(df: pd.DataFrame, columns: Union[str, List[str]], index: int) -> pd.DataFrame:
     """
     Move/reorder a single column or a list of columns to a new index.
 
@@ -61,7 +74,7 @@ def reorder_columns(df, columns: Union[str, List[str]], index: int) -> pd.DataFr
     return df
 
 
-def drop_columns_with_single_value(df, skip_columns: Union[str, List[str]] = None) -> pd.DataFrame:
+def drop_columns_with_single_value(df: pd.DataFrame, skip_columns: Union[str, List[str]] = None) -> pd.DataFrame:
     """
     Drop all columns containing only a single value. This includes all columns that only contain NaN/None.
 
@@ -85,7 +98,7 @@ def drop_columns_with_single_value(df, skip_columns: Union[str, List[str]] = Non
     return df
 
 
-def factorize_columns(df, columns: Union[str, List[str]]) -> pd.DataFrame:
+def factorize_columns(df: pd.DataFrame, columns: Union[str, List[str]]) -> pd.DataFrame:
     """
     Convert columns to a list of unique integers per category
 
@@ -101,7 +114,7 @@ def factorize_columns(df, columns: Union[str, List[str]]) -> pd.DataFrame:
     return df
 
 
-def keep_top_items_in_columns(df, columns: Union[str, List[str]], number_of_items: int) -> pd.DataFrame:
+def keep_top_items_in_columns(df: pd.DataFrame, columns: Union[str, List[str]], number_of_items: int) -> pd.DataFrame:
     """
     For all the columns passed in the arguments, keep the N-top frequent items. The rest will be set to 'other'.
     :arg df: Data as Pandas DataFrame
@@ -117,3 +130,6 @@ def keep_top_items_in_columns(df, columns: Union[str, List[str]], number_of_item
         df[column].loc[~np.array(df[column].isin(top_items_list))] = 'other'
 
     return df
+
+
+df = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
