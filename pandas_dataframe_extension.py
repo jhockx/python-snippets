@@ -1,7 +1,6 @@
 import logging
-from abc import abstractmethod
-
 import pandas as pd
+from abc import abstractmethod
 
 logger = logging.getLogger(__name__)
 
