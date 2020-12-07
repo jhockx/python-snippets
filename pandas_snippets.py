@@ -1,8 +1,7 @@
 import logging
 import numpy as np
-from typing import List, Union
-
 import pandas as pd
+from typing import List, Union
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +140,3 @@ def keep_top_items_in_columns(df: pd.DataFrame, columns: Union[str, List[str]], 
         df[column].loc[~np.array(df[column].isin(top_items_list))] = 'other'
 
     return df
-
-
-df = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
