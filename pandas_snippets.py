@@ -127,6 +127,7 @@ def factorize_columns(df: pd.DataFrame, columns: Union[str, List[str]]) -> pd.Da
 def keep_top_items_in_columns(df: pd.DataFrame, columns: Union[str, List[str]], number_of_items: int) -> pd.DataFrame:
     """
     For all the columns passed in the arguments, keep the N-top frequent items. The rest will be set to 'other'.
+    
     :arg df: Data as Pandas DataFrame
     :arg columns: Columns to only keep N-top frequent items.
     :arg number_of_items: The top number of items to keep (= N).
