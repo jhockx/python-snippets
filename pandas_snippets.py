@@ -1,7 +1,8 @@
 import logging
+
 import numpy as np
 import pandas as pd
-from typing import List, Union
+from typing import List, Union, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -37,29 +38,32 @@ def downcast(df: pd.DataFrame, signed_columns: List[str] = None) -> pd.DataFrame
     return df
 
 
-def sort_by_list(df: pd.DataFrame, sort_list: list, column: str, suppress_warnings: bool = False) -> pd.DataFrame:
+def sort_by_lists(df: pd.DataFrame, by: List[str], sort_lists: Dict[str, list],
+                  suppress_warnings: bool = False) -> pd.DataFrame:
     """
     Sort DataFrame by specific values for a specific column
 
     :arg df: Data as Pandas DataFrame
-    :arg sort_list: List to sort on
-    :arg column: Column to sort on
+    :arg by: Columns, in order, to sort on
+    :arg sort_lists: A dict containing as key the columns that need list sorting and as value the corresponding lists
     :arg suppress_warnings: Suppress warnings if working as expected
     :return:
     """
-    if not suppress_warnings:
-        if len(set(df[column].unique()) - set(sort_list)) > 0:
-            logger.warning(f'The column "{column}" contains more values than the sort_list. These values will be '
-                           f'converted to NaN. If this intended this warning can be suppressed with the argument '
-                           f'"suppress_warnings".')
-        elif len(set(sort_list) - set(df[column].unique())) > 0:
-            logger.warning(f'The sort_list contains more values than the column "{column}". These values will be '
-                           f'ignored. If this intended this warning can be suppressed with the argument '
-                           f'"suppress_warnings".')
+    for column in sort_lists.keys():
+        if not suppress_warnings:
+            if len(set(df[column].unique()) - set(sort_lists[column])) > 0:
+                logger.warning(f'The column "{column}" contains more values than the sort_list. These values will be '
+                               f'converted to NaN. If this intended this warning can be suppressed with the argument '
+                               f'"suppress_warnings".')
+            elif len(set(sort_lists[column]) - set(df[column].unique())) > 0:
+                logger.warning(f'The sort_list contains more values than the column "{column}". These values will be '
+                               f'ignored. If this intended this warning can be suppressed with the argument '
+                               f'"suppress_warnings".')
 
-    df[column] = df[column].astype("category")
-    df[column] = df[column].cat.set_categories(sort_list)
-    df = df.sort_values(column)
+        df[column] = df[column].astype("category")
+        df[column] = df[column].cat.set_categories(sort_lists[column])
+
+    df = df.sort_values(by)
 
     return df
 
