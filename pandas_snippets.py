@@ -6,6 +6,9 @@ from typing import List, Union, Dict
 
 logger = logging.getLogger(__name__)
 
+""" This should fully print all columns """
+with pd.option_context('display.max_rows', 100, 'display.max_columns', None):
+    print(df)
 
 def memory_size(df: pd.DataFrame) -> float:
     """
